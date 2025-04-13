@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blood Bank - Manage Stock</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #fff4f4;
+            color: #333;
+            text-align: center;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #b30000;
+            margin-bottom: 20px;
+        }
+
+        .stock-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #b30000;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>🩸 Blood Bank Stock Status</h1>
+
+    <div class="stock-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Blood Type</th>
+                    <th>Available Units</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody id="stock-table-body">
+                <!-- Will be filled by JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const stockData = [
+            { type: "A+", units: 12, lastUpdated: "2025-04-09 14:30" },
+            { type: "A-", units: 6, lastUpdated: "2025-04-09 14:30" },
+            { type: "B+", units: 9, lastUpdated: "2025-04-09 14:30" },
+            { type: "B-", units: 4, lastUpdated: "2025-04-09 14:30" },
+            { type: "O+", units: 18, lastUpdated: "2025-04-09 14:30" },
+            { type: "O-", units: 3, lastUpdated: "2025-04-09 14:30" },
+            { type: "AB+", units: 5, lastUpdated: "2025-04-09 14:30" },
+            { type: "AB-", units: 2, lastUpdated: "2025-04-09 14:30" }
+        ];
+
+        const tbody = document.getElementById("stock-table-body");
+
+        stockData.forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${item.type}</td>
+                <td>${item.units}</td>
+                <td>${item.lastUpdated}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    </script>
+</body>
+</html>
