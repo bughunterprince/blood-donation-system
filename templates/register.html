@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phone Verification Form</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fff4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      width: 350px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    label {
+      font-weight: 600;
+      margin-top: 15px;
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #otp-message {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Register</h2>
+    <form id="registerForm">
+      <label for="name">Name:</label>
+      <input type="text" id="name" required>
+
+      <label for="phone">Phone Number:</label>
+      <input type="tel" id="phone" required placeholder="e.g. 9876543210" maxlength="10">
+
+      <label for="age">Age:</label>
+      <input type="number" id="age" required min="18" max="65">
+
+      <button type="button" id="sendOtpBtn">Send OTP</button>
+
+      <div id="otp-message"></div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("sendOtpBtn").addEventListener("click", function () {
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const age = document.getElementById("age").value;
+  
+      // Validate the form input
+      if (!name || phone.length !== 10 || isNaN(phone) || age < 18 || age > 65) {
+        alert("Please enter valid details (age 18–65 and 10-digit phone).");
+        return;
+      }
+  
+      // Send data to Flask backend
+      fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+          age: age,
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Show success message
+        alert('Donor registered successfully');
+  
+        // Simulate OTP send (existing behavior)
+        const otpMsg = document.getElementById("otp-message");
+        otpMsg.textContent = `OTP has been sent to ${phone}`;
+      })
+      .catch(error => {
+        // Handle errors
+        alert('Error registering donor');
+      });
+    });
+  </script>
+  
+</body>
+</html>
