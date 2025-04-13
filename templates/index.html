@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blood Donation System</title>
+  <link rel="stylesheet" href="/static/idea.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fff4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .top-right-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .top-right-buttons button {
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+
+    .top-right-buttons button:hover {
+      background-color: #e60000;
+    }
+
+    h1 {
+      margin-top: 80px;
+      font-size: 36px;
+      color: #ffffff;
+      text-shadow: 2px 2px 4px #cc0000;
+    }
+
+    .container {
+      display: flex;
+      gap: 40px;
+      margin-top: 50px;
+    }
+
+    .logo {
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .logo img {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 10px;
+    }
+
+    .logo:hover {
+      transform: scale(1.05);
+      transition: transform 0.2s;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-right-buttons">
+    <button id="login-btn" onclick="location.href='login.html'">Login</button>
+    <button id="signup-btn" onclick="location.href='signup.html'">Signup</button>
+  </div>
+
+  <h1>Blood Donation System</h1>
+
+  <div class="container">
+    <div class="logo" onclick="location.href='custfinal.html'">
+      <img src="https://cdn-icons-png.flaticon.com/512/3208/3208673.png" alt="Customer2">
+      Customer<br>(Book Appointment)
+    </div>
+    <div class="logo" onclick="location.href='hospital.html'">
+      <img src="https://cdn-icons-png.flaticon.com/512/2700/2700063.png" alt="Hospital">
+      Hospital<br>(Emergency Request)
+    </div>
+    <div class="logo" onclick="location.href='bloodbank.html'">
+      <img src="https://cdn-icons-png.flaticon.com/512/1494/1494581.png" alt="Blood Bank">
+      Blood Bank<br>(Current Stock)
+    </div>
+  </div>
+
+  <!-- JavaScript to hide buttons -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Hide both buttons
+      document.getElementById("login-btn").style.display = "none";
+      document.getElementById("signup-btn").style.display = "none";
+    });
+  </script>
+
+</body>
+</html>
