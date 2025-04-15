@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Blood Donation System</title>
-  <link rel="stylesheet" href="/static/idea.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='idea.css') }}">
   <style>
     body {
       margin: 0;
@@ -41,14 +41,16 @@
     h1 {
       margin-top: 80px;
       font-size: 36px;
-      color: #ffffff;
-      text-shadow: 2px 2px 4px #cc0000;
+      color: #d62828; /* improved contrast */
+      text-shadow: 2px 2px 4px #ffb3b3;
     }
 
     .container {
       display: flex;
       gap: 40px;
       margin-top: 50px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .logo {
@@ -58,8 +60,9 @@
 
     .logo img {
       width: 100px;
-      height: 100px;
+      height: auto;
       margin-bottom: 10px;
+      max-width: 100%;
     }
 
     .logo:hover {
@@ -71,35 +74,31 @@
 <body>
 
   <div class="top-right-buttons">
-    <button id="login-btn" onclick="location.href='login.html'">Login</button>
-    <button id="signup-btn" onclick="location.href='signup.html'">Signup</button>
+    {% if username %}
+      <span style="color: #555; padding: 8px;">Welcome, {{ username }}</span>
+      <button onclick="location.href='{{ url_for('logout') }}'">Logout</button>
+    {% else %}
+      <button onclick="location.href='{{ url_for('login') }}'">Login</button>
+      <button onclick="location.href='{{ url_for('signup') }}'">Signup</button>
+    {% endif %}
   </div>
 
   <h1>Blood Donation System</h1>
 
   <div class="container">
-    <div class="logo" onclick="location.href='custfinal.html'">
-      <img src="https://cdn-icons-png.flaticon.com/512/3208/3208673.png" alt="Customer2">
+    <div class="logo" onclick="location.href='{{ url_for('custfinal') }}'">
+      <img src="https://cdn-icons-png.flaticon.com/512/3208/3208673.png" alt="Book Appointment Icon">
       Customer<br>(Book Appointment)
     </div>
-    <div class="logo" onclick="location.href='hospital.html'">
-      <img src="https://cdn-icons-png.flaticon.com/512/2700/2700063.png" alt="Hospital">
+    <div class="logo" onclick="location.href='{{ url_for('hospital') }}'">
+      <img src="https://cdn-icons-png.flaticon.com/512/2700/2700063.png" alt="Emergency Blood Request Icon">
       Hospital<br>(Emergency Request)
     </div>
-    <div class="logo" onclick="location.href='bloodbank.html'">
-      <img src="https://cdn-icons-png.flaticon.com/512/1494/1494581.png" alt="Blood Bank">
+    <div class="logo" onclick="location.href='{{ url_for('bloodbank') }}'">
+      <img src="https://cdn-icons-png.flaticon.com/512/1494/1494581.png" alt="Blood Bank Stock Icon">
       Blood Bank<br>(Current Stock)
     </div>
   </div>
-
-  <!-- JavaScript to hide buttons -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Hide both buttons
-      document.getElementById("login-btn").style.display = "none";
-      document.getElementById("signup-btn").style.display = "none";
-    });
-  </script>
 
 </body>
 </html>

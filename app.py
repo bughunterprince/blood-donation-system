@@ -1,176 +1,161 @@
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from passlib.hash import scrypt
 from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # ✅ Allow cross-origin requests if needed
 
-app.secret_key = 'your_secret_key_here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Pinku9810#&@localhost/flask_forms'
+app.secret_key = 'your_secret_key'  # Replace this with env var in production
+
+# ✅ MySQL config (FreeSQLDatabase)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://sql8772861:mWx7nBBsXP@sql8.freesqldatabase.com:3306/sql8772861'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# ===================== MODELS =====================
-
+# ✅ User model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
 
-class Customer(db.Model):
+# ✅ Customer appointment model
+class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    email = db.Column(db.String(100))
+    name = db.Column(db.String(120))
+    email = db.Column(db.String(120))
     age = db.Column(db.Integer)
     gender = db.Column(db.String(10))
     appointment_date = db.Column(db.String(20))
     time_slot = db.Column(db.String(20))
 
-class HospitalRequest(db.Model):
+# ✅ Hospital blood request model
+class BloodRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    hospital_name = db.Column(db.String(100))
-    contact_name = db.Column(db.String(100))
+    hospital_name = db.Column(db.String(120))
+    contact_name = db.Column(db.String(120))
     blood_type = db.Column(db.String(10))
     units = db.Column(db.Integer)
-    priority = db.Column(db.String(10))
+    priority = db.Column(db.String(20))
     required_date = db.Column(db.String(20))
 
-class Donor(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    phone = db.Column(db.String(20))
-    age = db.Column(db.Integer)
-
+# ✅ Create all tables
 with app.app_context():
     db.create_all()
 
-# ===================== DECORATOR =====================
+# ✅ Home Route
+@app.route('/')
+def home():
+    return redirect(url_for('login'))
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login_page'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-# ===================== AUTH ROUTES =====================
-
-@app.route('/signup', methods=['POST'])
+# ✅ Signup
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    username = request.form['username']
-    email = request.form['email']
-    password = request.form['password']
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
 
-    if User.query.filter_by(email=email).first():
-        return render_template('signup.html', error='User already exists.')
+        if User.query.filter_by(email=email).first():
+            return render_template('signup.html', error='User already exists.')
 
-    hashed_pw = generate_password_hash(password)
-    new_user = User(username=username, email=email, password_hash=hashed_pw)
-    db.session.add(new_user)
-    db.session.commit()
-    return redirect(url_for('login_page'))
+        hashed_pw = scrypt.hash(password)
+        new_user = User(username=username, email=email, password_hash=hashed_pw)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login'))
 
-@app.route('/login', methods=['POST'])
+    return render_template('signup.html')
+
+# ✅ Login
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    email = request.form['email']
-    password = request.form['password']
-    user = User.query.filter_by(email=email).first()
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
 
-    if user and check_password_hash(user.password_hash, password):
-        session['user_id'] = user.id
-        return redirect(url_for('index'))
-    return render_template('login.html', error='Invalid credentials.')
+        if user and scrypt.verify(password, user.password_hash):
+            session['user_id'] = user.id
+            return redirect(url_for('dashboard'))
 
+        return render_template('login.html', error='Invalid credentials.')
+
+    return render_template('login.html')
+
+# ✅ Dashboard
+@app.route('/dashboard')
+def dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    return render_template('index.html', username=user.username)
+
+# ✅ Logout
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login_page'))
+    return redirect(url_for('login'))
 
-# ===================== PAGE ROUTES =====================
-
-@app.route('/')
-def root():
-    return redirect(url_for('login_page'))
-
-@app.route('/login.html')
-def login_page():
-    return render_template('login.html')
-
-@app.route('/signup.html')
-def signup_page():
-    return render_template('signup.html')
-
-@app.route('/register.html')
-@login_required
-def register_page():
-    return render_template('register.html')
-
-@app.route('/index.html')
-@login_required
-def index():
-    return render_template('index.html')
-
-@app.route('/customer.html')
-@login_required
-def customer_page():
-    return render_template('customer.html')
-
-@app.route('/hospital.html')
-@login_required
-def hospital_page():
-    return render_template('hospital.html')
-
-@app.route('/bloodbank.html')
-@login_required
-def bloodbank_page():
-    return render_template('bloodbank.html')
-
-@app.route('/custfinal.html')
-@login_required
-def custfinal_page():
+# ✅ Pages
+@app.route('/custfinal')
+def custfinal():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     return render_template('custfinal.html')
 
-# ===================== FORM SUBMISSIONS =====================
+@app.route('/hospital')
+def hospital():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('hospital.html')
 
+@app.route('/bloodbank')
+def bloodbank():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('bloodbank.html')
+
+# ✅ Customer appointment submission
 @app.route('/submit-customer', methods=['POST'])
-@login_required
 def submit_customer():
-    data = request.get_json()
     try:
-        customer = Customer(**data)
-        db.session.add(customer)
+        data = request.get_json()
+        new_appointment = Appointment(
+            name=data['name'],
+            email=data['email'],
+            age=data['age'],
+            gender=data['gender'],
+            appointment_date=data['appointment_date'],
+            time_slot=data['time_slot']
+        )
+        db.session.add(new_appointment)
         db.session.commit()
-        return jsonify({"message": "✅ Appointment confirmed!"})
+        return jsonify({'message': '✅ Appointment booked successfully!'}), 200
     except Exception as e:
-        return jsonify({"message": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
+# ✅ Hospital blood request submission
 @app.route('/submit-hospital', methods=['POST'])
-@login_required
 def submit_hospital():
-    data = request.get_json()
     try:
-        req = HospitalRequest(**data)
-        db.session.add(req)
+        data = request.get_json()
+        new_request = BloodRequest(
+            hospital_name=data['hospital_name'],
+            contact_name=data['contact_name'],
+            blood_type=data['blood_type'],
+            units=data['units'],
+            priority=data['priority'],
+            required_date=data['required_date']
+        )
+        db.session.add(new_request)
         db.session.commit()
-        return jsonify({"message": "✅ Request submitted!"})
+        return jsonify({'message': '✅ Blood request submitted successfully!'}), 200
     except Exception as e:
-        return jsonify({"message": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/api/register', methods=['POST'])
-@login_required
-def register_donor():
-    data = request.get_json()
-    donor = Donor(name=data['name'], phone=data['phone'], age=data['age'])
-    db.session.add(donor)
-    db.session.commit()
-    return jsonify({"message": "Donor registered"})
-
-# ===================== RUN =====================
-
+# ✅ Main
 if __name__ == '__main__':
     app.run(debug=True)

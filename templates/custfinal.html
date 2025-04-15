@@ -137,7 +137,6 @@
     const slotsContainer = document.getElementById("slots");
     let selectedSlot = null;
 
-    // Create time slot buttons
     timeSlots.forEach(slot => {
       const slotElement = document.createElement("div");
       slotElement.classList.add("slot");
@@ -154,7 +153,6 @@
       slotsContainer.appendChild(slotElement);
     });
 
-    // Submit form data to Flask
     function confirmAppointment() {
       const name = document.getElementById("name").value;
       const email = document.getElementById("email").value;
@@ -176,22 +174,20 @@
         time_slot: selectedSlot.textContent
       };
 
-      // SEND TO FLASK RUNNING ON PORT 5000
-      fetch("http://127.0.0.1:5000/submit-customer", {
+      fetch("/submit-customer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       })
       .then(res => res.json())
       .then(result => {
-        alert(result.message);
         document.getElementById("selected-time").innerText = result.message;
         document.querySelector("form").reset();
         if (selectedSlot) selectedSlot.classList.remove("selected");
         selectedSlot = null;
       })
       .catch(err => {
-        alert("❌ Submission failed. Is the Flask server running?");
+        alert("❌ Submission failed. Server error.");
         console.error(err);
       });
     }
