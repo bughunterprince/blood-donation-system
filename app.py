@@ -1,27 +1,25 @@
 from flask import Flask, request, render_template, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from passlib.hash import scrypt
+from passlib.hash import sha256_crypt  # ✅ scrypt replaced with sha256_crypt
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # ✅ Allow cross-origin requests if needed
+CORS(app)
+app.secret_key = 'your_secret_key'
 
-app.secret_key = 'your_secret_key'  # Replace this with env var in production
-
-# ✅ MySQL config (FreeSQLDatabase)
+# ✅ MySQL config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://sql8772861:mWx7nBBsXP@sql8.freesqldatabase.com:3306/sql8772861'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# ✅ User model
+# ✅ Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
 
-# ✅ Customer appointment model
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
@@ -31,7 +29,6 @@ class Appointment(db.Model):
     appointment_date = db.Column(db.String(20))
     time_slot = db.Column(db.String(20))
 
-# ✅ Hospital blood request model
 class BloodRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     hospital_name = db.Column(db.String(120))
@@ -41,16 +38,14 @@ class BloodRequest(db.Model):
     priority = db.Column(db.String(20))
     required_date = db.Column(db.String(20))
 
-# ✅ Create all tables
 with app.app_context():
     db.create_all()
 
-# ✅ Home Route
+# ✅ Routes
 @app.route('/')
 def home():
     return redirect(url_for('login'))
 
-# ✅ Signup
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -61,7 +56,7 @@ def signup():
         if User.query.filter_by(email=email).first():
             return render_template('signup.html', error='User already exists.')
 
-        hashed_pw = scrypt.hash(password)
+        hashed_pw = sha256_crypt.hash(password)
         new_user = User(username=username, email=email, password_hash=hashed_pw)
         db.session.add(new_user)
         db.session.commit()
@@ -69,7 +64,6 @@ def signup():
 
     return render_template('signup.html')
 
-# ✅ Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -77,15 +71,17 @@ def login():
         password = request.form['password']
         user = User.query.filter_by(email=email).first()
 
-        if user and scrypt.verify(password, user.password_hash):
-            session['user_id'] = user.id
-            return redirect(url_for('dashboard'))
+        try:
+            if user and sha256_crypt.verify(password, user.password_hash):
+                session['user_id'] = user.id
+                return redirect(url_for('dashboard'))
+        except Exception as e:
+            return render_template('login.html', error='Invalid password format.')
 
         return render_template('login.html', error='Invalid credentials.')
 
     return render_template('login.html')
 
-# ✅ Dashboard
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
@@ -93,13 +89,11 @@ def dashboard():
     user = User.query.get(session['user_id'])
     return render_template('index.html', username=user.username)
 
-# ✅ Logout
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ✅ Pages
 @app.route('/custfinal')
 def custfinal():
     if 'user_id' not in session:
@@ -118,7 +112,6 @@ def bloodbank():
         return redirect(url_for('login'))
     return render_template('bloodbank.html')
 
-# ✅ Customer appointment submission
 @app.route('/submit-customer', methods=['POST'])
 def submit_customer():
     try:
@@ -137,7 +130,6 @@ def submit_customer():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ✅ Hospital blood request submission
 @app.route('/submit-hospital', methods=['POST'])
 def submit_hospital():
     try:
@@ -156,6 +148,6 @@ def submit_hospital():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ✅ Main
 if __name__ == '__main__':
     app.run(debug=True)
+
