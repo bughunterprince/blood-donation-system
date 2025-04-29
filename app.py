@@ -1,14 +1,19 @@
 from flask import Flask, request, render_template, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from passlib.hash import sha256_crypt  # ✅ scrypt replaced with sha256_crypt
+from passlib.hash import sha256_crypt
 from flask_cors import CORS
+from dotenv import load_dotenv
+import os
+
+# ✅ Load environment variables from .env
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
-app.secret_key = 'your_secret_key'
+app.secret_key = os.environ.get('SECRET_KEY', 'default_secret')
 
-# ✅ MySQL config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://sql8772861:mWx7nBBsXP@sql8.freesqldatabase.com:3306/sql8772861'
+# ✅ PostgreSQL config from .env
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -38,6 +43,7 @@ class BloodRequest(db.Model):
     priority = db.Column(db.String(20))
     required_date = db.Column(db.String(20))
 
+# ✅ Create tables
 with app.app_context():
     db.create_all()
 
@@ -149,5 +155,5 @@ def submit_hospital():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)  # ✅ Debug False for production
